@@ -11,7 +11,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <glob.h>
+
 
 
 void* copyText(char* filename){
@@ -27,6 +27,8 @@ void* copyText(char* filename){
     return (void*) 0;
 }
 
+
+
 int main(int argc, char *argv[]){
     DIR *d;
     struct dirent *e;
@@ -37,7 +39,7 @@ int main(int argc, char *argv[]){
         if (e->d_type != DT_REG)
             continue;
 
-        if(strrchr(e->d_name,"."))
+        if(wal_stricmp(e->d_name,".txt"))
             continue;
 
         printf("%s", (char*)e->d_name);
