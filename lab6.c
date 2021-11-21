@@ -25,7 +25,7 @@ void* copyText(void* arg){
 
     close(in);
 
-    //free(filename);
+    free(filename);
     
     return (void *) 0;
 }
@@ -55,9 +55,10 @@ int main(int argc, char *argv[]){
         printf("%s\n", filename);
         
         //clock_gettime(CLOCK_REALTIME, &start[i]);
-        pthread_create(&threads[i], NULL, copyText, filename);
-      
-        i++;
+        //pthread_create(&threads[i], NULL, copyText, filename);
+        copyText(filename);
+
+        //i++;
     	
 	
     }
