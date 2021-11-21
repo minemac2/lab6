@@ -39,7 +39,7 @@ int main(int argc, char *argv[]){
         if (e->d_type != DT_REG)
             continue;
 
-        if(wal_stricmp(e->d_name,".txt"))
+        if((e->d_name,".txt"))
             continue;
 
         printf("%s", (char*)e->d_name);
