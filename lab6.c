@@ -1,4 +1,4 @@
-#include "q.h"
+//#include "q.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -25,12 +25,12 @@ void* copyText(void* arg){
 
     close(in);
 
-    free(filename);
+    //free(filename);
     
     return (void *) 0;
 }
 
-int main(char *argv[]){
+int main(int argc, char *argv[]){
 
     DIR *d;
     struct dirent *e;
