@@ -33,17 +33,20 @@ int main(int argc, char *argv[]){
     DIR *d;
     struct dirent *e;
     d = opendir(argv[1]);
+    int i = 0;
 
+    pthread_t threads[100];
     while ((e = readdir(d)) != NULL) {
 
         if (e->d_type != DT_REG)
             continue;
 
-        if((e->d_name,".txt"))
-            continue;
+
 
         printf("%s", (char*)e->d_name);
-        
+
+        pthread_create(&threads[i], NULL, copyFile, filename);
+        i++;
     }
 
 
