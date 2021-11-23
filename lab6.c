@@ -45,7 +45,7 @@ int main(int argc, char *argv[]){
 
         printf("%s", (char*)e->d_name);
 
-        pthread_create(&threads[i], NULL, copyFile, filename);
+        pthread_create(&threads[i], NULL, copyText, filename);
         i++;
     }
 
