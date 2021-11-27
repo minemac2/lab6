@@ -16,45 +16,51 @@
 
 void* copyText(char* filename){
     
-
-    printf("test1");
     //Opens file
     FILE * in = fopen(filename,"r");
 
     //stores the letters as a word is being read
-    char* str="";
+    char str[100];
+    str[0]='\0';
     //temp stand in for the buffer-stores words once they have been read
-    char* words="";
+    char words[10000];
+    words[0]='\0';
     //holds characters as they are read from file
-    char c;
-    printf("test2");
+    int c;
+
 
     //loops through the file character by character
-    while((c = fgetc(in)) != EOF)
+
+    while((c=fgetc(in)) != EOF)
     {
-        printf("test3");
         //if the currect char is a space or newline it is the end of a word
         if(c== ' ' || c == '\n'){
-            printf("test4");
-            //add newline to str
-            strcat(str,(char*)"\n");
-            //add str to words-should be buffer eventually
-            strcat(words,str);
-            //reset str to be blank for next word
-            str="";
+           
+            //copy str and newline into words and clear str
+            strcat(&words,&str);
+            strcat(&words,"\n");
+            str[0]='\0';
+
+
         }
         else{
-            printf("test5");
-            //add current char to str
-            strcat(str,(char*)c);
+
+            //add character to str
+            strcat(&str,&c);
+
         }
     }
+
+    //copy last word to words
+    strcat(&words,&str);
+    strcat(&words,"\n");
     
-    printf("%s",words);
+    printf("%s",&words);
 
     
 
     fclose(in);
+
 
     return (void*) 0;
 }
@@ -75,11 +81,24 @@ int main(int argc, char *argv[]){
 
 
 
-        printf("%s\n", (char*)e->d_name);
+        //printf("%s\n", (char*)e->d_name);
 
-        char* filename = strdup(e->d_name);
+        //create filename (for now just set the array size to 1000)
+        char filename[1000];
+        filename[0]='\0';
+        //add filepath to filename and filename
+        strcat(&filename,argv[1]);
+        strcat(&filename,"/");
+        strcat(&filename,e->d_name);
+
+
+        //print filename
+        printf("%s\n",&filename);
+
+
+
         //pthread_create(&threads[i], NULL, copyText, filename);
-        printf("test");
+        //run copy text
         copyText(filename);
         i++;
     }
