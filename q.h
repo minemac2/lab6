@@ -3,9 +3,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define MAX 6
+struct Words {
+    char* word; 
+    char* pdir;
+};
 
-int intArray[MAX];
+int MAX;
+struct Words** queueArray;
 int front = 0;
-int rear = -1;
+int rear = 0;
 int itemCount = 0;
+
+

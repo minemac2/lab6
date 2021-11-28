@@ -1,41 +1,53 @@
 #include "q.h"
 
-int peek() {
-    return intArray[front];
+
+
+
+void setupQueue1(int sizeMax){
+    MAX=sizeMax;
+    queueArray=(struct Words**)calloc(MAX,sizeof(struct Words**));
 }
 
-bool isEmpty() {
+bool queueOneIsEmpty() {
     return itemCount == 0;
 }
 
-bool isFull() {
+bool queueOneIsFull() {
     return itemCount == MAX;
 }
 
-int size() {
+int queueOneSize() {
     return itemCount;
 }
 
-void insert(int data) {
-
-    if(!isFull()) {
-
-        if(rear == MAX-1) {
-            rear = -1;
-        }
-
-        intArray[++rear] = data;
-        itemCount++;
-    }
+int queueOneMax(){
+    return MAX;
 }
 
-int removeData() {
-    int data = intArray[front++];
-
-    if(front == MAX) {
-        front = 0;
+void printQueue(){
+    for(int i=front;i<rear;i++){
+        printf("%s  %s",queueArray[i]->word,queueArray[i]->pdir);
     }
+    
+}
 
+//putting things in
+void enqueue(char* data,char* qdir) {
+
+
+
+    struct Words *p2={&data,qdir};
+    printf("%s  %s\n",p2->word,p2->pdir);
+    queueArray[rear] = p2;
+    rear = (rear + 1) % MAX;
+    itemCount++;
+}
+
+//taking stuff out
+char* dequeue() {
+
+    char* tmp = queueArray[front];
+    front = (front + 1) % MAX;
     itemCount--;
-    return data;
+    return tmp;
 }

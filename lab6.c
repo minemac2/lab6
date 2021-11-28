@@ -11,7 +11,14 @@
 #include <string.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <stdbool.h>
+#include "q.c"
 
+
+
+
+pthread_cond_t empty, fill;
+pthread_mutex_t mutex;
 
 
 void* copyText(char* filename){
@@ -22,23 +29,35 @@ void* copyText(char* filename){
     //stores the letters as a word is being read
     char str[100];
     str[0]='\0';
-    //temp stand in for the buffer-stores words once they have been read
-    char words[10000];
-    words[0]='\0';
+
     //holds characters as they are read from file
     int c;
 
 
     //loops through the file character by character
+    printf("Point Before 1st While Loop in TextCopy\n");
 
     while((c=fgetc(in)) != EOF)
     {
-        //if the currect char is a space or newline it is the end of a word
-        if(c== ' ' || c == '\n'){
+        //if the current char is a space or newline it is the end of a word
+        if(c== ' ' || c == '\n' || c == ','){
            
-            //copy str and newline into words and clear str
-            strcat(&words,&str);
-            strcat(&words,"\n");
+            printf("Point Before 1st For loop\n");
+            int i;
+            //for(i=0;i< pthread_mutex_lock(&mutex);i++){
+                pthread_mutex_lock(&mutex);
+                int j=0;
+                while ((queueOneIsFull())) {
+                    printf("Point 2\n");
+                    j++;
+                    pthread_cond_wait(&empty, &mutex); 
+                };
+                printf("%s\n", filename);
+                enqueue(strdup(&str),strdup(filename));
+                pthread_cond_signal(&fill);
+                pthread_mutex_unlock(&mutex);
+            //}
+            //clear str
             str[0]='\0';
 
 
@@ -50,12 +69,19 @@ void* copyText(char* filename){
 
         }
     }
-
-    //copy last word to words
-    strcat(&words,&str);
-    strcat(&words,"\n");
+    printf("Point 3\n");
+    int i;
+    //for(i=0;i< pthread_mutex_lock(&mutex);i++){
+        pthread_mutex_lock(&mutex);
+        while (queueOneIsFull()){
+            pthread_cond_wait(&empty, &mutex);    
+        };
+        enqueue(strdup(&str),filename);
+        pthread_cond_signal(&fill);
+        pthread_mutex_unlock(&mutex);
+    //}
+   
     
-    printf("%s",&words);
 
     
 
@@ -72,6 +98,8 @@ int main(int argc, char *argv[]){
     struct dirent *e;
     d = opendir(argv[1]);
     int i = 0;
+
+    setupQueue1(10000);
 
     //pthread_t threads[100];
     while ((e = readdir(d)) != NULL) {
@@ -100,8 +128,11 @@ int main(int argc, char *argv[]){
         //pthread_create(&threads[i], NULL, copyText, filename);
         //run copy text
         copyText(filename);
+        
         i++;
     }
+
+    printQueue();
 
 
 

@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "dirent.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "resource.h": "c"
     }
 }
