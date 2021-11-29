@@ -12,7 +12,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdbool.h>
-#include "q.c"
+#include "qq.h"
 
 
 
@@ -42,22 +42,22 @@ void* copyText(char* filename){
     {
         //if the current char is a space or newline it is the end of a word
         if(c== ' ' || c == '\n' || c == ','){
-           
+            if(str[0]=='\0'){
+                continue;
+            }
             
-            
-            
-            pthread_mutex_lock(&mutex);
-            while ((queueOneIsFull())) {
-                pthread_cond_wait(&empty, &mutex); 
-            };
-            
-            //printf("FileName: %s\n", filename);
-            enqueue(strdup(&str),strdup(filename));
-            pthread_cond_signal(&fill);
-            pthread_mutex_unlock(&mutex);
-            
-            //clear str
-            str[0]='\0';
+                pthread_mutex_lock(&mutex);
+                while ((queueOneIsFull())) {
+                    pthread_cond_wait(&empty, &mutex); 
+                };
+                
+                //printf("FileName: %s\n", filename);
+                enqueue(strdup(&str),strdup(filename));
+                pthread_cond_signal(&fill);
+                pthread_mutex_unlock(&mutex);
+                
+                //clear str
+                str[0]='\0';
 
 
         }
@@ -89,6 +89,7 @@ void* copyText(char* filename){
 
     return (void*) 0;
 }
+
 
 
 

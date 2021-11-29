@@ -2,6 +2,7 @@
     "files.associations": {
         "dirent.h": "c",
         "time.h": "c",
-        "resource.h": "c"
+        "resource.h": "c",
+        "stdbool.h": "c"
     }
 }
