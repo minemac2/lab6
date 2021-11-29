@@ -5,7 +5,13 @@
 
 void setupQueue1(int sizeMax){
     MAX=sizeMax;
-    queueArray=(struct Words**)calloc(MAX,sizeof(struct Words**));
+    queueArrayWords=(char**)calloc(MAX,sizeof(char**));
+    queueArrayDir=(char**)calloc(MAX,sizeof(char**));
+}
+
+void closeQueue1(){
+    free(queueArrayWords);
+    free(queueArrayDir);
 }
 
 bool queueOneIsEmpty() {
@@ -26,28 +32,33 @@ int queueOneMax(){
 
 void printQueue(){
     for(int i=front;i<rear;i++){
-        printf("%s  %s",queueArray[i]->word,queueArray[i]->pdir);
+        printf("%s  %s\n",queueArrayWords[i],queueArrayDir[i]);
     }
     
 }
 
 //putting things in
-void enqueue(char* data,char* qdir) {
+void enqueue(char* data,char* dir) {
 
-
-
-    struct Words *p2={&data,qdir};
-    printf("%s  %s\n",p2->word,p2->pdir);
-    queueArray[rear] = p2;
+    queueArrayWords[rear] = data;
+    queueArrayDir[rear] = dir;
+    //printf("Word: %s Dir: %s\n",queueArrayWords[rear],queueArrayDir[rear]);
     rear = (rear + 1) % MAX;
     itemCount++;
 }
 
 //taking stuff out
-char* dequeue() {
+void dequeue(char* word, char* dir) {
 
-    char* tmp = queueArray[front];
+    word=(char*)malloc(sizeof(queueArrayWords[front]));
+    *word = *queueArrayWords[front];
+    free(queueArrayWords[front]);
+
+    dir=(char*)malloc(sizeof(queueArrayDir[front]));
+    *dir = *queueArrayDir[front];
+    free(queueArrayDir[front]);
+
     front = (front + 1) % MAX;
     itemCount--;
-    return tmp;
+    return;
 }

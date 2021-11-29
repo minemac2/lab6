@@ -21,6 +21,7 @@ pthread_cond_t empty, fill;
 pthread_mutex_t mutex;
 
 
+
 void* copyText(char* filename){
     
     //Opens file
@@ -35,28 +36,26 @@ void* copyText(char* filename){
 
 
     //loops through the file character by character
-    printf("Point Before 1st While Loop in TextCopy\n");
+    
 
     while((c=fgetc(in)) != EOF)
     {
         //if the current char is a space or newline it is the end of a word
         if(c== ' ' || c == '\n' || c == ','){
            
-            printf("Point Before 1st For loop\n");
-            int i;
-            //for(i=0;i< pthread_mutex_lock(&mutex);i++){
-                pthread_mutex_lock(&mutex);
-                int j=0;
-                while ((queueOneIsFull())) {
-                    printf("Point 2\n");
-                    j++;
-                    pthread_cond_wait(&empty, &mutex); 
-                };
-                printf("%s\n", filename);
-                enqueue(strdup(&str),strdup(filename));
-                pthread_cond_signal(&fill);
-                pthread_mutex_unlock(&mutex);
-            //}
+            
+            
+            
+            pthread_mutex_lock(&mutex);
+            while ((queueOneIsFull())) {
+                pthread_cond_wait(&empty, &mutex); 
+            };
+            
+            //printf("FileName: %s\n", filename);
+            enqueue(strdup(&str),strdup(filename));
+            pthread_cond_signal(&fill);
+            pthread_mutex_unlock(&mutex);
+            
             //clear str
             str[0]='\0';
 
@@ -69,17 +68,17 @@ void* copyText(char* filename){
 
         }
     }
-    printf("Point 3\n");
-    int i;
-    //for(i=0;i< pthread_mutex_lock(&mutex);i++){
-        pthread_mutex_lock(&mutex);
-        while (queueOneIsFull()){
-            pthread_cond_wait(&empty, &mutex);    
-        };
-        enqueue(strdup(&str),filename);
-        pthread_cond_signal(&fill);
-        pthread_mutex_unlock(&mutex);
-    //}
+    
+    
+    
+    pthread_mutex_lock(&mutex);
+    while (queueOneIsFull()){
+        pthread_cond_wait(&empty, &mutex);    
+    };
+    enqueue(strdup(&str),strdup(filename));
+    pthread_cond_signal(&fill);
+    pthread_mutex_unlock(&mutex);
+    
    
     
 
@@ -96,7 +95,14 @@ void* copyText(char* filename){
 int main(int argc, char *argv[]){
     DIR *d;
     struct dirent *e;
-    d = opendir(argv[1]);
+
+    char *directory=(char*)malloc(sizeof(argv[1])+3);
+    directory[0]='\0';
+    strcat(directory,"./");
+    strcat(directory,argv[1]);
+
+    d = opendir(directory);
+    
     int i = 0;
 
     setupQueue1(10000);
@@ -121,7 +127,7 @@ int main(int argc, char *argv[]){
 
 
         //print filename
-        printf("%s\n",&filename);
+        //printf("%s\n",&filename);
 
 
 
@@ -132,7 +138,9 @@ int main(int argc, char *argv[]){
         i++;
     }
 
-    printQueue();
+    //printQueue();
+    closeQueue1;
+    free(directory);
 
 
 
