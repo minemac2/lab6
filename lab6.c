@@ -12,13 +12,14 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdbool.h>
-#include "qq.h"
+#include "q1e.h"
+#include "q2e.h"
 
 
 
 
-pthread_cond_t empty, fill;
-pthread_mutex_t mutex;
+pthread_cond_t queueOneEmpty, queueOneFill, queueTwoEmpty, queueTwoFill;
+pthread_mutex_t queueOneMutex, queueTwoMutex;
 
 
 
@@ -46,15 +47,15 @@ void* copyText(char* filename){
                 continue;
             }
             
-                pthread_mutex_lock(&mutex);
+                pthread_mutex_lock(&queueOneMutex);
                 while ((queueOneIsFull())) {
-                    pthread_cond_wait(&empty, &mutex); 
+                    pthread_cond_wait(&queueOneEmpty, &queueOneMutex); 
                 };
                 
                 //printf("FileName: %s\n", filename);
-                enqueue(strdup(&str),strdup(filename));
-                pthread_cond_signal(&fill);
-                pthread_mutex_unlock(&mutex);
+                queueOneEnqueue(strdup(&str),strdup(filename));
+                pthread_cond_signal(&queueOneFill);
+                pthread_mutex_unlock(&queueOneMutex);
                 
                 //clear str
                 str[0]='\0';
@@ -71,26 +72,42 @@ void* copyText(char* filename){
     
     
     
-    pthread_mutex_lock(&mutex);
+    pthread_mutex_lock(&queueOneMutex);
     while (queueOneIsFull()){
-        pthread_cond_wait(&empty, &mutex);    
+        pthread_cond_wait(&queueOneEmpty, &queueOneMutex);    
     };
-    enqueue(strdup(&str),strdup(filename));
-    pthread_cond_signal(&fill);
-    pthread_mutex_unlock(&mutex);
+    queueOneEnqueue(strdup(&str),strdup(filename));
+    pthread_cond_signal(&queueOneFill);
+    pthread_mutex_unlock(&queueOneMutex);
     
-   
-    
-
-    
-
     fclose(in);
 
 
     return (void*) 0;
 }
 
+void preSort(){
 
+    pthread_mutex_lock(&queueOneMutex); 
+    while (queueOneIsEmpty())
+        pthread_cond_wait(&queueOneFill, &queueOneMutex);
+    
+    char* word;
+    char* dir;
+    queueOneDequeue(word,dir);
+
+    pthread_cond_signal(&queueOneEmpty);
+    pthread_mutex_unlock(&queueOneMutex);
+
+
+
+    free(word);
+    free(dir);
+}
+
+void finalSort(){
+
+}
 
 
 int main(int argc, char *argv[]){
@@ -106,7 +123,7 @@ int main(int argc, char *argv[]){
     
     int i = 0;
 
-    setupQueue1(10000);
+    queueOneSetup(10000);
 
     //pthread_t threads[100];
     while ((e = readdir(d)) != NULL) {
@@ -139,8 +156,8 @@ int main(int argc, char *argv[]){
         i++;
     }
 
-    //printQueue();
-    closeQueue1;
+    //queueOnePrint();
+    queueOneClose();
     free(directory);
 
 
