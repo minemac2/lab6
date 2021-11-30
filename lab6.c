@@ -22,12 +22,9 @@ sem_t queueOneEmptySem;
 sem_t queueOneFullSem;
 sem_t queueOneMutexSem;
 
-//example of Binary semaphore
-//sem_t m;
-//sem_init(&m, 0, 1); // initialize to 1
-//sem_wait(&m);
-// critical section here
-//sem_post(&m);
+
+
+
 
 //producer
 // sem_wait(&full);
@@ -56,7 +53,6 @@ int main(int argc, char *argv[]){
 
     d = opendir(directory);
     
-    int i = 0;
 
     //init semaphores
     sem_init(&queueOneMutexSem, 0, 1);
@@ -64,17 +60,23 @@ int main(int argc, char *argv[]){
     sem_init(&queueOneFullSem,0,argv[2]);
 
     //init queue1 and queue2
-    struct Queue *queue1=createQueue();
-    struct Queue *queue2=createQueue();
+    struct Queue* queue1=createQueue();
+    struct Queue* queue2=createQueue();
 
-    pthread_t threads[atoi(argv[2])];
+    int fileCount=0;
+    while((e=readdir(d)) !=NULL){
+
+        if (e->d_type != DT_REG)
+            fileCount++;
+    }
+    d = opendir(directory);
+
+    pthread_t readThreads[fileCount];
+    int i=0;
     while ((e = readdir(d)) != NULL) {
 
         if (e->d_type != DT_REG)
             continue;
-
-
-
 
 
         //create filename (for now just set the array size to 1000)
@@ -85,15 +87,35 @@ int main(int argc, char *argv[]){
         strcat(&filename,"/");
         strcat(&filename,e->d_name);
 
-        readFromFile(filename, queue1,&queueOneMutexSem,&queueOneEmptySem,&queueOneFullSem);
+        void* args[5];
+        args[0]=filename;
+        args[1]=queue1;
+        args[2]=&queueOneMutexSem;
+        args[3]=&queueOneEmptySem;
+        args[4]=&queueOneFullSem;
+        for(int i=0;i<5;i++){
+            printf("%s, ",args[i]);
+        }
+        printf("\n");
+        pthread_create(&readThreads[i],NULL,readFromFile,&args);
+        //readFromFile(filename, queue1,&queueOneMutexSem,&queueOneEmptySem,&queueOneFullSem);
 
 
         
         i++;
     }
+    printf("%d",fileCount);
+    for(int j=0;j<fileCount+1;j++){
+        pthread_join(readThreads[j],NULL);
+        printf("Joined thread: %d\n",j);
+    }
+
+
 
 
     free(directory);
+    free(queue1);
+    free(queue2);
 
 
 

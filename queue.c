@@ -2,7 +2,8 @@
 
 
 void enQueue(struct Queue* q,char* word,char* dir){
-
+    q->count++;
+    printf("Word: %s\n",word);
     struct node* temp=newNode(word,dir);
 
     if(q->rear == NULL){
@@ -17,7 +18,7 @@ void enQueue(struct Queue* q,char* word,char* dir){
 }
 
 void deQueue(struct Queue* q){
-
+    q->count--;
     if(q->front==NULL){
         return;
     }

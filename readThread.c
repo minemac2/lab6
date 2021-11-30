@@ -1,10 +1,13 @@
 #include "readThread.h"
 #include "queueE.h"
 
-void* readFromFile(char* filename, struct Queue *q,sem_t *mutex,sem_t *empty,sem_t *full){
+//char* filename, struct Queue *q,sem_t *mutex,sem_t *empty,sem_t *full
+
+
+void* readFromFile(void* args[]){
     
     //Opens file
-    FILE * in = fopen(filename,"r");
+    FILE * in = fopen(args[0],"r");
 
     //stores the letters as a word is being read
     char str[100];
@@ -28,11 +31,11 @@ void* readFromFile(char* filename, struct Queue *q,sem_t *mutex,sem_t *empty,sem
                 //critical section start
                 //wait
                 //printf("FileName: %s\n", filename);
-                sem_wait(full);
-                sem_wait(mutex);
-                enQueue(q,strdup(&str),strdup(filename));
-                sem_post(mutex);
-                sem_post(empty);
+                sem_wait(args[4]);
+                sem_wait(args[2]);
+                enQueue(args[1],strdup(&str),strdup(args[0]));
+                sem_post(args[2]);
+                sem_post(args[3]);
                 //post
                 //crit section end
 
@@ -52,11 +55,11 @@ void* readFromFile(char* filename, struct Queue *q,sem_t *mutex,sem_t *empty,sem
     
     
 
-    sem_wait(full);
-    sem_wait(mutex);
-    enQueue(q,strdup(&str),strdup(filename));
-    sem_post(mutex);
-    sem_post(empty);
+    sem_wait(args[4]);
+    sem_wait(args[2]);
+    enQueue(args[1],strdup(&str),strdup(args[0]));
+    sem_post(args[2]);
+    sem_post(args[3]);
 
     
     fclose(in);

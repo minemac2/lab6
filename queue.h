@@ -35,6 +35,7 @@ struct node* newNode(char* word,char* dir){
 struct Queue* createQueue(){
     struct Queue* q=(struct Queue*)malloc(sizeof(struct Queue));
     q->front=q->rear=NULL;
+    q->count=0;
     return q;
 }
 
