@@ -12,102 +12,37 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdbool.h>
-#include "q1e.h"
-#include "q2e.h"
+#include "queueE.h"
+#include "readThreadE.h"
+#include "readThread.h"
+#include "sortThread.h"
+#include <semaphore.h>
 
+sem_t queueOneEmptySem;
+sem_t queueOneFullSem;
+sem_t queueOneMutexSem;
 
+//example of Binary semaphore
+//sem_t m;
+//sem_init(&m, 0, 1); // initialize to 1
+//sem_wait(&m);
+// critical section here
+//sem_post(&m);
 
+//producer
+// sem_wait(&full);
+// sem_wait(&mutex);
+// put(i);
+// sem_post(&mutex);
+// sem_post(&empty);
 
-pthread_cond_t queueOneEmpty, queueOneFill, queueTwoEmpty, queueTwoFill;
-pthread_mutex_t queueOneMutex, queueTwoMutex;
+//consumer
+// sem_wait(&empty);
+// sem_wait(&mutex);
+// int tmp = get();
+// sem_post(&mutex);
+// sem_post(&full);
 
-
-
-void* copyText(char* filename){
-    
-    //Opens file
-    FILE * in = fopen(filename,"r");
-
-    //stores the letters as a word is being read
-    char str[100];
-    str[0]='\0';
-
-    //holds characters as they are read from file
-    int c;
-
-
-    //loops through the file character by character
-    
-
-    while((c=fgetc(in)) != EOF)
-    {
-        //if the current char is a space or newline it is the end of a word
-        if(c== ' ' || c == '\n' || c == ','){
-            if(str[0]=='\0'){
-                continue;
-            }
-            
-                pthread_mutex_lock(&queueOneMutex);
-                while ((queueOneIsFull())) {
-                    pthread_cond_wait(&queueOneEmpty, &queueOneMutex); 
-                };
-                
-                //printf("FileName: %s\n", filename);
-                queueOneEnqueue(strdup(&str),strdup(filename));
-                pthread_cond_signal(&queueOneFill);
-                pthread_mutex_unlock(&queueOneMutex);
-                
-                //clear str
-                str[0]='\0';
-
-
-        }
-        else{
-
-            //add character to str
-            strcat(&str,&c);
-
-        }
-    }
-    
-    
-    
-    pthread_mutex_lock(&queueOneMutex);
-    while (queueOneIsFull()){
-        pthread_cond_wait(&queueOneEmpty, &queueOneMutex);    
-    };
-    queueOneEnqueue(strdup(&str),strdup(filename));
-    pthread_cond_signal(&queueOneFill);
-    pthread_mutex_unlock(&queueOneMutex);
-    
-    fclose(in);
-
-
-    return (void*) 0;
-}
-
-void preSort(){
-
-    pthread_mutex_lock(&queueOneMutex); 
-    while (queueOneIsEmpty())
-        pthread_cond_wait(&queueOneFill, &queueOneMutex);
-    
-    char* word;
-    char* dir;
-    queueOneDequeue(word,dir);
-
-    pthread_cond_signal(&queueOneEmpty);
-    pthread_mutex_unlock(&queueOneMutex);
-
-
-
-    free(word);
-    free(dir);
-}
-
-void finalSort(){
-
-}
 
 
 int main(int argc, char *argv[]){
@@ -123,9 +58,16 @@ int main(int argc, char *argv[]){
     
     int i = 0;
 
-    queueOneSetup(10000);
+    //init semaphores
+    sem_init(&queueOneMutexSem, 0, 1);
+    sem_init(&queueOneEmptySem, 0, 0); //want the write threads to wait until queue is filled or files are done
+    sem_init(&queueOneFullSem,0,argv[2]);
 
-    //pthread_t threads[100];
+    //init queue1 and queue2
+    struct Queue *queue1=createQueue();
+    struct Queue *queue2=createQueue();
+
+    pthread_t threads[atoi(argv[2])];
     while ((e = readdir(d)) != NULL) {
 
         if (e->d_type != DT_REG)
@@ -133,7 +75,7 @@ int main(int argc, char *argv[]){
 
 
 
-        //printf("%s\n", (char*)e->d_name);
+
 
         //create filename (for now just set the array size to 1000)
         char filename[1000];
@@ -143,21 +85,14 @@ int main(int argc, char *argv[]){
         strcat(&filename,"/");
         strcat(&filename,e->d_name);
 
-
-        //print filename
-        //printf("%s\n",&filename);
+        readFromFile(filename, queue1,&queueOneMutexSem,&queueOneEmptySem,&queueOneFullSem);
 
 
-
-        //pthread_create(&threads[i], NULL, copyText, filename);
-        //run copy text
-        copyText(filename);
         
         i++;
     }
 
-    //queueOnePrint();
-    queueOneClose();
+
     free(directory);
 
 

@@ -1,16 +1,19 @@
-all: lab6 q1 q2 final
+all: lab6 queue readThread sortThread final
 
 lab6: lab6.c
 	gcc -c lab6.c
 
-q1: q1.c
-	gcc -c q1.c
+queue: queue.c
+	gcc -c queue.c
 
-q2: q2.c
-	gcc -c q2.c
+readThread: readThread.c
+	gcc -c readThread.c
+
+sortThread: sortThread.c
+	gcc -c sortThread.c
 
 final: 
-	gcc lab6.o q1.o q2.o
+	gcc lab6.o queue.o readThread.o sortThread.o
 
 clean: 
-	rm -f lab6.o q1.o q2.o a.out
+	rm -f lab6.o queue.o readThread.c a.out
