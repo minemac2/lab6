@@ -12,110 +12,194 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdbool.h>
-#include "queueE.h"
-#include "readThreadE.h"
-#include "readThread.h"
 #include "sortThread.h"
 #include <semaphore.h>
 
-sem_t queueOneEmptySem;
-sem_t queueOneFullSem;
-sem_t queueOneMutexSem;
+pthread_mutex_t readMutex;
+pthread_mutex_t writeMutex;
+pthread_mutex_t sortMutex;
 
 
+struct Queue *queue1;
+struct Queue *queue2;
+int maxBufferSize;
+int maxSortThreads;
 
 
+void* readFromFile(void* filename){
 
-//producer
-// sem_wait(&full);
-// sem_wait(&mutex);
-// put(i);
-// sem_post(&mutex);
-// sem_post(&empty);
+    //Opens file
+    FILE * in = fopen(filename,"r");
 
-//consumer
-// sem_wait(&empty);
-// sem_wait(&mutex);
-// int tmp = get();
-// sem_post(&mutex);
-// sem_post(&full);
+    //stores the letters as a word is being read
+    char str[100];
+    str[0]='\0';
+
+    //holds characters as they are read from file
+    int c;
+
+
+    //loops through the file character by character
+    
+
+    while((c=fgetc(in)) != EOF)
+    {
+        //if the current char is a space or newline it is the end of a word
+        if(c== ' ' || c == '\n' || c == ','){
+            if(str[0]=='\0'){
+                continue;
+            }
+            
+                //critical section start
+                //wait
+                pthread_mutex_lock(&readMutex);
+                if(maxBufferSize > getCount(queue1))
+                {
+                    enQueue(queue1,strdup(&str),strdup(filename));
+                    pthread_mutex_unlock(&readMutex);
+                }
+                else
+                {
+                    pthread_t threads[maxSortThreads];
+                    for (size_t i = 0; i < maxSortThreads; i++)
+                    {
+                        pthread_create(&threads[i], NULL, sortThread, NULL);
+                    }
+
+                    for (size_t k = 0; k < maxSortThreads; k++)
+                    {
+                        pthread_join(threads[k], NULL);
+                    }
+
+                    enQueue(queue1,strdup(&str),strdup(filename));
+                    pthread_mutex_unlock(&readMutex);
+                }
+
+                //post
+                //crit section end
+
+                //clear str
+                str[0]='\0';
+
+
+        }
+        else{
+
+            //add character to str
+            strcat(&str,&c);
+
+        }
+    }
+    
+    
+    
+
+    pthread_mutex_lock(&readMutex);
+    enQueue(queue1,strdup(&str),strdup(filename));
+    pthread_mutex_unlock(&readMutex);
+    
+    fclose(in);
+
+
+    return (void*) 0;
+}
 
 
 
 int main(int argc, char *argv[]){
     DIR *d;
-    struct dirent *e;
+    int files = 0;
+    maxSortThreads = atoi(argv[3]);
 
     char *directory=(char*)malloc(sizeof(argv[1])+3);
     directory[0]='\0';
     strcat(directory,"./");
     strcat(directory,argv[1]);
 
-    d = opendir(directory);
-    
+    char *directoryForFilename=(char*)malloc(sizeof(argv[1])+1);
+    strcat(directoryForFilename,argv[1]);
+    strcat(directoryForFilename,"/");
 
-    //init semaphores
-    sem_init(&queueOneMutexSem, 0, 1);
-    sem_init(&queueOneEmptySem, 0, 0); //want the write threads to wait until queue is filled or files are done
-    sem_init(&queueOneFullSem,0,argv[2]);
+    maxBufferSize = atoi(argv[2]);
+
+    d = opendir(directory);
+
+    struct dirent *fileCounter;
+    struct dirent *iterator;
+    
+    int counter = 0;
 
     //init queue1 and queue2
-    struct Queue* queue1=createQueue();
-    struct Queue* queue2=createQueue();
+    queue1=createQueue();
+    queue2=createQueue();
 
-    int fileCount=0;
-    while((e=readdir(d)) !=NULL){
+    pthread_mutex_init( &readMutex, NULL);
+    pthread_mutex_init( &writeMutex, NULL);
+    pthread_mutex_init( &sortMutex, NULL);
 
-        if (e->d_type != DT_REG)
-            fileCount++;
-    }
-    d = opendir(directory);
+    while( (fileCounter=readdir(d)) )
+    {
+        if (fileCounter->d_type == DT_REG)
+        {
+            files++;
+        }
+    };
 
-    pthread_t readThreads[fileCount];
-    int i=0;
-    while ((e = readdir(d)) != NULL) {
+    //Init file read threads
+    pthread_t fileThreads[files];
 
-        if (e->d_type != DT_REG)
+    rewinddir(d);
+    
+    
+    while ((iterator = readdir(d)) != NULL) {
+
+        if (iterator->d_type != DT_REG)
             continue;
 
 
-        //create filename (for now just set the array size to 1000)
-        char filename[1000];
-        filename[0]='\0';
-        //add filepath to filename and filename
-        strcat(&filename,argv[1]);
-        strcat(&filename,"/");
-        strcat(&filename,e->d_name);
+        char * filename = (char*) malloc((strlen(directoryForFilename) + strlen((char*)iterator->d_name) + 1)*sizeof(char));
+        strcpy(filename,directoryForFilename);
+        strcat(filename,iterator->d_name);
 
-        void* args[5];
-        args[0]=filename;
-        args[1]=queue1;
-        args[2]=&queueOneMutexSem;
-        args[3]=&queueOneEmptySem;
-        args[4]=&queueOneFullSem;
-        for(int i=0;i<5;i++){
-            printf("%s, ",args[i]);
-        }
-        printf("\n");
-        pthread_create(&readThreads[i],NULL,readFromFile,&args);
-        //readFromFile(filename, queue1,&queueOneMutexSem,&queueOneEmptySem,&queueOneFullSem);
+        pthread_create(&fileThreads[counter], NULL, readFromFile, (void *)filename);
 
 
         
-        i++;
-    }
-    printf("%d",fileCount);
-    for(int j=0;j<fileCount+1;j++){
-        pthread_join(readThreads[j],NULL);
-        printf("Joined thread: %d\n",j);
+        counter++;
     }
 
+    for (size_t j = 0; j < counter; j++)
+    {
+        pthread_join(fileThreads[j], NULL);
+    }
 
+    //spinning up threads until the read queue is depleted
+    while(getCount(queue1) != 0)
+    {
+        pthread_t threads[maxSortThreads];
+        for (size_t i = 0; i < maxSortThreads; i++)
+        {
+            pthread_create(&threads[i], NULL, sortThread, NULL);
+        }
 
+        for (size_t k = 0; k < maxSortThreads; k++)
+        {
+            pthread_join(threads[k], NULL);
+        }
+    }
+
+    //print(queue2);
+
+    FILE *fp;
+    fp = fopen(argv[4], "w+");
+    struct node* n = queue2->front;
+    while (n != NULL) {
+        fprintf(fp, "%s\t\t%s\n", n->word, n->dir);
+        n = n->next;
+    }    
+    fclose(fp);
 
     free(directory);
-    free(queue1);
-    free(queue2);
 
 
 
