@@ -93,7 +93,7 @@ void* readFromFile(void* filename){
     
     
     
-
+    //add final word to queue
     pthread_mutex_lock(&readMutex);
     enQueue(queue1,strdup(&str),strdup(filename));
     pthread_mutex_unlock(&readMutex);
@@ -188,7 +188,7 @@ int main(int argc, char *argv[]){
         }
     }
 
-    //print(queue2);
+
 
     FILE *fp;
     fp = fopen(argv[4], "w+");

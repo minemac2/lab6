@@ -9,6 +9,7 @@ extern pthread_mutex_t sortMutex;
 extern struct Queue *queue1;
 extern struct Queue *queue2;
 
+//main sort thread
 void* sortThread(void* args)
 {
     pthread_mutex_lock(&sortMutex);
@@ -29,9 +30,10 @@ void* sortThread(void* args)
     pthread_create(&tid[0], NULL, writeThread, (void*)queueToSort);
 }
 
+//second sort thread
 void* writeThread(void* args)
 {
-    //assignment wants this in a separate thread but that doesn't make any sense.
+    
     struct Queue* queueToSort = (struct Queue*)args;
 
     pthread_mutex_lock(&writeMutex);

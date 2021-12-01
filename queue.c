@@ -1,6 +1,6 @@
 #include "queue.h"
 
-
+//add items to queue
 void enQueue(struct Queue* q,char* word,char* dir){
     struct node* temp=newNode(word,dir);
 
@@ -15,6 +15,7 @@ void enQueue(struct Queue* q,char* word,char* dir){
 
 }
 
+//remove items from queue
 struct node* deQueue(struct Queue* q){
 
     if(q->front==NULL){
@@ -32,6 +33,7 @@ struct node* deQueue(struct Queue* q){
 
 }
 
+//print queue for debugging
 void print(struct Queue* q)
 {
     struct node* n = q->front;
@@ -41,6 +43,8 @@ void print(struct Queue* q)
     }
 }
 
+
+//returns size of queue
 int getCount(struct Queue* q)
 {
     int count = 0; 
@@ -53,6 +57,7 @@ int getCount(struct Queue* q)
     return count;
 }
 
+//Sorts the queue
 void sort2(struct Queue* q)
 {
     int i,j;
@@ -82,6 +87,7 @@ void sort2(struct Queue* q)
        }
 }
 
+//creates and returns new node
 struct node* newNode(char* word,char* dir){
 
     struct node* temp = (struct node*)malloc(sizeof(struct node));
@@ -92,6 +98,7 @@ struct node* newNode(char* word,char* dir){
 
 }
 
+//returns new queue
 struct Queue* createQueue(){
     struct Queue* q=(struct Queue*)malloc(sizeof(struct Queue));
     q->front=q->rear=NULL;

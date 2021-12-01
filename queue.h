@@ -19,6 +19,7 @@ struct Queue {
 typedef struct Queue Queue;
 
 
+
 extern void enQueue(struct Queue* q,char* word,char* dir);
 extern struct node* deQueue(struct Queue* q);
 extern void print(struct Queue* q);
